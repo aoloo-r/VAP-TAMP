@@ -1,0 +1,41 @@
+
+
+Follow the steps below to execute the system on your real robot:
+
+### **Step 1: Start the Segway Bridge**
+
+This connects your ROS 2 system to the Segway robot via the ROS bridge.
+
+```bash
+./stretch_ai/scripts/run_segway_bridge.sh
+````
+
+---
+
+### **Step 2: Run the Evaluation Script**
+
+Execute the main evaluation script with the following command:
+
+```bash
+python eval_real_robot.py \
+  --robot-ip  \
+  --map-file /home/aoloo/code/stretch_ai/scripts/visual_grounding_benchmark/sample9.pkl \
+  --domain domains/bottle_collection/domain.pddl \
+  --problem domains/bottle_collection/problem.pddl \
+  --api-key " " \
+  --location-map location_mapping.yaml \
+  --config rosbridge_robot_config.yaml \
+  --calibration simple_offset_calibration.yaml \
+  --output bottle_collection_results.json
+```
+
+---
+
+##  Notes
+
+* Ensure the ROS bridge is running before executing the evaluation script.
+* The `--api-key` parameter should contain a valid API key for your system (replace with your own if needed).
+* The output JSON file (`bottle_collection_results.json`) will contain the task evaluation results.
+* You may modify the `map-file`, domain/problem files, or configuration paths depending on your experiment setup.
+
+---

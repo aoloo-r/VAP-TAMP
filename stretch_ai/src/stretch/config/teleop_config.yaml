@@ -1,0 +1,120 @@
+# teleop_config.yaml - Teleoperation Mapping for Stretch AI + Segway
+
+# =================== ENCODER SETUP ===================
+encoder: "siglip"
+encoder_args:
+  version: "so400m"
+  feature_match_threshold: 0.05
+  grasp_feature_match_threshold: 0.05
+
+open_vocab_category_map_file: src/stretch/config/example_cat_map.json
+tts_engine: "gTTS"
+
+# =================== VOXEL MAP & OBS ===================
+voxel_size: 0.05
+obs_min_height: 0.10
+obs_max_height: 1.8
+neg_obs_height: -0.05
+use_negative_obstacles: true
+obs_min_density: 10
+min_points_per_voxel: 15
+pad_obstacles: 3
+min_pad_obstacles: 1
+local_radius: 0.8
+add_local_every_step: false
+remove_visited_from_obstacles: false
+min_depth: 0.5
+max_depth: 2.0
+
+# =================== DETECTION & PERCEPTION ===================
+detection:
+  module: "detic"
+  yolo_world_model_size: "l"            # Only relevant for YOLO World
+  yolo_confidence_threshold: 0.1        # Only relevant for YOLO/YOLO World
+  confidence_threshold: 0.05             # For Detic
+  category_map_file: example_cat_map.json
+  use_detic_viz: false
+
+# =================== POINT CLOUD FILTERS ===================
+filters:
+  smooth_kernel_size: 3
+  use_median_filter: true
+  median_filter_size: 4
+  median_filter_max_error: 0.01
+  use_derivative_filter: false
+  derivative_filter_threshold: 0.1
+
+# =================== MOTION / STOP CONDITIONS ===================
+motion:
+  moving_threshold: 0.01
+  angle_threshold: 0.1
+  min_steps_not_moving: 2
+  joint_tolerance:
+    arm: 0.02
+    base_x: 0.02
+    lift: 0.02
+    wrist_roll: 0.1
+    wrist_pitch: 0.1
+    wrist_yaw: 0.1
+    head_pan: 0.01
+    head_tilt: 0.01
+  joint_thresholds:
+    head_not_moving_tolerance: 0.0001
+    gripper_open_threshold: 0.3
+
+# =================== AGENT (REAL-TIME, TELEOP) ===================
+agent:
+  use_realtime_updates: true
+  sweep_head_on_update: false
+  in_place_rotation_steps: 8
+  realtime:
+    matching_distance: 0.5
+    temporal_threshold: 0.1
+    maximum_matched_observations: 50
+    camera_pose_match_threshold: 0.5
+  realtime_rotation_steps: 2
+
+# =================== INSTANCE MEMORY ===================
+instance_memory:
+  min_instance_thickness: 0.01
+  min_instance_vol: 1e-6
+  max_instance_vol: 10.0
+  min_instance_height: 0.01
+  max_instance_height: 1.8
+  min_pixels_for_instance_view: 100
+  min_percent_for_instance_view: 0.1
+  mask_cropped_instances: false
+
+# =================== MOTION PLANNER (DISABLED FOR TELEOP) ===================
+motion_planner:
+  enabled: false
+  algorithm: "rrt_connect"
+  step_size: 0.05
+  rotation_step_size: 0.1
+  simplify_plans: false
+  shortcut_plans: false
+  frontier:
+    dilate_frontier_size: 2
+    dilate_obstacle_size: 4
+    default_expand_frontier_size: 12
+    min_dist: 0.1
+    step_dist: 0.2
+  goals:
+    manipulation_radius: 0.45
+
+# =================== EXPLORATION, TASK, ETC ===================
+exploration_steps: 0
+task:
+  command: ""
+
+# =================== SCENE GRAPH & TAMP (DISABLED FOR TELEOP) ===================
+guarantee_instance_is_reachable: false
+use_scene_graph: false
+
+# =================== TRAJECTORY THRESHOLDS (NOT USED IN TELEOP) ===================
+trajectory_pos_err_threshold: 0.15
+trajectory_rot_err_threshold: 0.5
+trajectory_per_step_timeout: 3.0
+
+# =================== OTHER (FORWARD COMPAT) ===================
+name: "stretch"

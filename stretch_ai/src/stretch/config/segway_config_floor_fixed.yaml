@@ -1,0 +1,147 @@
+# Segway Robot Configuration for Stretch AI - FLOOR DETECTION FIXED
+# This configuration addresses the core floor detection issue for proper navigation
+
+# Base configuration
+vlm_base_config: default_planner.yaml
+
+# ROS2 topic mapping for rosbridge setup
+ros2:
+  # Camera topics
+  rgb_topic: "/camera/color/image_raw"
+  depth_topic: "/camera/depth/image_rect_raw"
+  camera_info_topic: "/camera/color/camera_info"
+
+  # Robot state topics
+  joint_state_topic: "/joint_states"
+  odom_topic: "/odom"
+  odom_fallback_topic: "/odom"
+
+  # Control topics (Segway-specific)
+  cmd_vel_topic: "/segway/cmd_vel"
+
+  # Navigation topics
+  goal_topic: "/move_base_simple/goal"
+  status_topic: "/move_base/status"
+
+  # LIDAR topic
+  lidar_topic: "/scan"
+
+# Segway robot physical parameters
+segway_robot:
+  width: 0.25      # 25cm width
+  length: 0.30     # 30cm length
+  height: 0.10     # 10cm base height
+  max_speed: 1.0   # 1 m/s max speed
+  max_angular_speed: 1.0  # 1 rad/s max angular speed
+
+# Camera transform for Segway (adjust based on your setup)
+camera_transform: [
+  0.0,  0.0,  1.0,  0.3,   # Camera forward = Robot X, 30cm forward
+  -1.0, 0.0,  0.0,  0.0,   # Camera right = Robot -Y
+  0.0, -1.0,  0.0,  0.6,   # Camera down = Robot -Z, 60cm height
+  0.0,  0.0,  0.0,  1.0    # Homogeneous coordinates
+]
+
+# CORE FIX: Optimized obstacle detection with proper floor detection
+encoder: "dinov2siglip"
+encoder_args: { "version": "google/siglip-base-patch16-224" }
+voxel_size: 0.04
+
+# CRITICAL: Height parameters - OPTIMIZED for floor detection
+obs_min_height: 0.02     # 2cm above ground (very close to floor to capture floor points)
+obs_max_height: 1.8      # 1.8m max height (exclude ceiling)
+neg_obs_height: -0.10    # 10cm below ground for better floor detection
+use_negative_obstacles: true  # ENABLE to capture floor points
+
+# CRITICAL: Very permissive obstacle detection
+obs_min_density: 1       # Very lenient obstacle detection
+min_points_per_voxel: 1  # Accept single point clouds
+
+# CRITICAL: NO obstacle padding for maximum free space
+pad_obstacles: 0         # No obstacle padding
+min_pad_obstacles: 0     # No minimum padding
+
+# Enhanced floor detection parameters
+local_radius: 1.0        # Larger radius for floor detection
+add_local_every_step: true  # Add local exploration every step
+remove_visited_from_obstacles: true  # Remove robot's path from obstacles
+min_depth: 0.05          # Very close depth for floor detection
+max_depth: 5.0
+
+# CRITICAL: Disable smoothing that removes floor areas
+filters:
+  smooth_kernel_size: 0     # Disable morphological smoothing
+  use_median_filter: false
+  use_derivative_filter: false
+
+# VLM configuration
+vlm:
+  vlm_option: gemini
+  vlm_context_length: 100
+  save_vlm_plan: true
+  replanning: false
+  sample_strategy: "clip"
+
+# OPTIMIZED Navigation parameters for floor-aware planning
+motion_planner:
+  step_size: 0.03          # Smaller steps
+  rotation_step_size: 0.08  # Smaller rotation steps
+  algorithm: "rrt_connect"
+  max_iter: 10000          # MANY iterations for complex environments
+  is_safe_threshold: -3.0  # VERY permissive collision detection (was -1.0)
+  simplify_plans: true
+  shortcut_plans: true
+  use_hybrid_navigation: false  # Pure 3D voxel navigation
+  simplify:
+    max_step: 0.4
+    min_step: 0.03
+    num_steps: 10
+    min_angle: 0.05
+  shortcut_iter: 200
+  frontier:
+    dilate_frontier_size: 1
+    dilate_obstacle_size: 0  # NO obstacle dilation
+    default_expand_frontier_size: 8
+    min_dist: 0.05
+    step_dist: 0.10
+  goals:
+    manipulation_radius: 1.5   # Larger radius for approach
+
+# Navigation with visual servoing
+navigation:
+  use_visual_servoing: true
+
+# REDUCED Robot footprint for easier navigation
+robot_footprint:
+  width: 0.18      # SMALLER width for easier navigation (was 0.25)
+  length: 0.22     # SMALLER length (was 0.30)
+  width_offset: 0.0
+  length_offset: 0.0
+
+# More tolerant execution parameters
+trajectory_pos_err_threshold: 0.25   # More tolerant position error
+trajectory_rot_err_threshold: 0.6    # More tolerant rotation error
+trajectory_per_step_timeout: 8.0     # Longer timeout
+
+# Scene graph for spatial relationships
+guarantee_instance_is_reachable: true
+plan_with_reachable_instances: true
+plan_with_scene_graph: true
+scene_graph:
+  max_near_distance: 0.25
+  min_on_height: 0.02      # Lower to catch floor objects
+  max_on_height: 0.15
+
+# Task configuration
+task:
+  command: ""  # Empty for interactive mode
+
+# Robot type specification
+robot_type: "segway"
+
+# ADDITIONAL: Floor-specific optimizations
+floor_detection:
+  enabled: true
+  floor_threshold: -0.05   # Points below this are floor
+  expand_floor_radius: 0.2 # Expand detected floor areas
+  min_floor_points: 5      # Minimum points to consider area as floor

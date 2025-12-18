@@ -1,0 +1,134 @@
+# Configuration for viewing maps with small objects like cups, phones, etc.
+# This config has relaxed filters to ensure small objects are detected and have bounding boxes
+
+# Encoder setup
+encoder: "siglip"
+encoder_args:
+  version: "so400m"
+  feature_match_threshold: 0.05
+  grasp_feature_match_threshold: 0.05
+open_vocab_category_map_file: example_cat_map.json
+tts_engine: "gTTS"
+
+# --- Sparse Voxel Map parameters optimized for small objects ---
+voxel_size: 0.02  # Smaller voxels for better detail on small objects
+obs_min_height: 0.01  # Very low to catch small objects on surfaces
+obs_max_height: 2.5
+neg_obs_height: -0.05
+use_negative_obstacles: True
+obs_min_density: 3    # Lowered to accept more sparse data
+min_points_per_voxel: 3 # Very low to accept small clusters
+
+pad_obstacles: 2
+min_pad_obstacles: 1
+
+local_radius: 0.8
+add_local_every_step: False
+remove_visited_from_obstacles: False
+min_depth: 0.05  # Very close range for small objects
+max_depth: 5.0
+
+# Object detection parameters
+detection:
+  module: "detic"
+  yolo_world_model_size: "l"
+  yolo_confidence_threshold: 0.05  # Lower threshold to catch small objects
+  confidence_threshold: 0.3  # Lower threshold for small/partially occluded objects
+  category_map_file: example_cat_map.json
+  use_detic_viz: False
+
+# Point cloud cleanup filters - very permissive for small objects
+filters:
+  smooth_kernel_size: 0
+  use_median_filter: False
+  median_filter_size: 4
+  median_filter_max_error: 0.01
+  use_derivative_filter: False
+  derivative_filter_threshold: 0.1
+
+motion:
+  moving_threshold: 0.01
+  angle_threshold: 0.1
+
+# Planning parameters
+planner: "astar"
+plan_with_map: True
+visualize: False
+rrt_size: 1000
+rrt_n_closest: 5
+rrt_timeout: 10.0
+rrt_max_iter: 5000
+
+# --- CRITICAL: Instance memory parameters relaxed for small objects ---
+instance_memory:
+  # VOLUME: Allow very small objects (cups are ~0.0001 m³, phones ~0.00005 m³)
+  min_instance_vol: 1e-8        # 0.00000001 m³ - extremely small objects allowed
+  max_instance_vol: 10.0        # Keep large objects too
+  
+  # HEIGHT: Allow objects as small as 1cm (phones lying flat, small cups)
+  min_instance_height: 0.01     # 1cm minimum height
+  max_instance_height: 1.8
+  
+  # THICKNESS: Allow very thin objects (phones, thin cups)
+  min_instance_thickness: 0.005  # 5mm minimum thickness (phones are ~7-10mm)
+  
+  # PIXELS: Allow objects that occupy fewer pixels (distant/small objects)
+  min_pixels_for_instance_view: 50    # 50 pixels instead of 200
+  min_percent_for_instance_view: 0.05 # 5% instead of 15%
+  
+  # Other settings
+  mask_cropped_instances: False
+  
+  matching:
+    box_min_iou_thresh: 0.02
+    min_similarity_thresh: 0.15    # Lower threshold to match similar small objects
+    box_overlap_weight: 0.2
+    visual_similarity_weight: 0.5
+    shape_similarity_weight: 0.3
+
+# Agent configuration
+agent:
+  use_realtime_updates: True
+  use_instance_memory: True
+  use_voxel_map: True
+  use_vlm: True
+  language_model: "openai"
+  llm_vocab: "data/vocab_10k_gpt3.txt"
+
+# VLM planner
+vlm_planner:
+  step_size: 0.25
+
+# Visual servoing
+visual_servoing:
+  debug: False
+  
+# Scene graph for object relationships
+scene_graph:
+  max_near_distance: 1.5       # Increased to catch more relationships
+  max_on_height: 0.15          # Objects can be "on" something up to 15cm above
+  min_on_height: 0.01          # Minimum height difference for "on" relationship
+  max_under_distance: 0.5
+  min_under_height: 0.1
+  max_beside_distance: 0.8
+  max_beside_height_diff: 0.2
+  max_above_distance: 0.7
+  min_above_height: 0.05
+  max_inside_distance: 0.3
+  max_next_to_distance: 0.6
+  min_behind_distance: 0.2
+  max_behind_distance: 1.0
+  max_against_distance: 0.15
+
+# AI model configurations
+openai:
+  model_id: "gpt-4"
+  max_tokens: 512
+  temperature: 0.0
+  use_tiktok_mode: True
+  use_gpt4v: True
+
+# Miscellaneous
+min_depth: 0.05
+max_depth: 5.0
+gui: False

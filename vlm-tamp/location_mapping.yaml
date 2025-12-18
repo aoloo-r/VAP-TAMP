@@ -1,0 +1,55 @@
+# Location mapping for PDDL tasks
+# All coordinates are in AMCL map frame (directly from LIDAR map)
+# NO transformation or offset needed - these are the exact working coordinates
+
+locations:
+  # Room 1 - Lab (main room / starting point)
+  loc_main:
+    x: -13.1071120064
+    y: -15.1124078236
+    description: "Lab table - delivery location for both bottles (Task 1) and firewood (Task 3)"
+
+  room1:
+    x: -13.1071120064
+    y: -15.1124078236
+    description: "Room 1 - Lab center"
+
+  # Room 2 - TA Area (bottle collection location)
+  loc_room2:
+    x: 1.43808
+    y: -4.881605
+    description: "TA Area - bottle collection point"
+
+  room2:
+    x: 1.43808
+    y: -4.881605
+    description: "Room 2 - TA Area center"
+
+  # Room 3 - Conference Room (second bottle/firewood location)
+  loc_room3:
+    x: -0.26633
+    y: -0.252465
+    description: "Conference Room - second bottle (Task 1) or firewood collection point (Task 3)"
+
+  room3:
+    x: -0.26633
+    y: -0.252465
+    description: "Room 3 - Conference Room center"
+
+  # Egg location (for Task 2: Halve an Egg)
+  loc_egg:
+    x: -13.1071120064
+    y: -15.1124078236
+    description: "Egg location in Room 1 (Lab) - same as Task 1 start position"
+
+  # Knife location (for Task 2: Halve an Egg)
+  loc_knife:
+    x: -6.9837571282
+    y: -20.5025550065
+    description: "Knife location in Room 1 (Lab) - different from egg location"
+
+  # Door between Room 1 and Room 2 (for Task 3: Firewood Storage)
+  door_room1_to_room2:
+    x: -6.52195
+    y: -8.179987
+    description: "Door between Room 1 (Lab) and Room 2 (TA Area) - CLOSED, requires human assistance to open. Robot stops here to request door opening."

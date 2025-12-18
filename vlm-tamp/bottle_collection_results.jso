@@ -1,0 +1,13 @@
+{
+  "total_actions": 4,
+  "successful_actions": 1,
+  "failed_actions": 3,
+  "retried_actions": 2,
+  "vlm_queries": 0,
+  "uncertain_responses": 0,
+  "active_perception_triggers": 0,
+  "active_perception_successes": 0,
+  "navigation_failures": 0,
+  "grasp_failures": 0,
+  "object_not_found_failures": 0
+}

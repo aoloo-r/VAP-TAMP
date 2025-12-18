@@ -1,0 +1,112 @@
+# ROS2 configuration for robot connected via rosbridge from ROS1 melodic
+vlm_base_config: default_planner.yaml
+
+# ROS2 topic mapping for rosbridge setup
+ros2:
+  # Camera topics (your actual robot topics)
+  rgb_topic: "/camera/color/image_raw"
+  depth_topic: "/camera/depth/image_rect_raw"  
+  camera_info_topic: "/camera/color/camera_info"
+  
+  # Robot state topics
+  joint_state_topic: "/joint_states"
+  odom_topic: "/odom"  # Your robot publishes to /odom, not visual_slam
+  odom_fallback_topic: "/odom"
+  
+  # Control topics
+  cmd_vel_topic: "/segway/cmd_vel"  # Your robot uses /segway/cmd_vel, not /cmd_vel
+  
+  # Navigation topics
+  goal_topic: "/move_base_simple/goal"
+  status_topic: "/move_base/status"
+  
+  # LIDAR topic (your robot has this!)
+  lidar_topic: "/scan"
+
+# Camera transform - adjust these values for your robot
+# This transforms from robot base frame to camera optical frame
+camera_transform: [
+  0.0,  0.0,  1.0,  0.2,   # Camera forward = Robot X, 20cm forward
+  -1.0, 0.0,  0.0,  0.0,   # Camera right = Robot -Y
+  0.0, -1.0,  0.0,  0.5,   # Camera down = Robot -Z, 50cm height
+  0.0,  0.0,  0.0,  1.0    # Homogeneous coordinates
+]
+
+# Core mapping parameters
+encoder: "dinov2siglip"
+encoder_args: { "version": "google/siglip-base-patch16-224" }
+voxel_size: 0.04
+obs_min_height: 0.05
+obs_max_height: 2.5
+neg_obs_height: -0.05
+use_negative_obstacles: true
+obs_min_density: 5
+min_points_per_voxel: 5
+pad_obstacles: 1
+min_pad_obstacles: 1
+local_radius: 0.8
+add_local_every_step: false
+remove_visited_from_obstacles: false
+min_depth: 0.1
+max_depth: 5.0
+
+# VLM configuration for Gemini
+vlm:
+  vlm_option: gemini
+  vlm_context_length: 100
+  save_vlm_plan: true
+  replanning: false
+  sample_strategy: "clip"
+
+# Navigation parameters
+motion_planner:
+  step_size: 0.05
+  rotation_step_size: 0.1
+  algorithm: "rrt_connect"
+  max_iter: 2000  # Increased for better 3D planning success
+  is_safe_threshold: 0.0
+  simplify_plans: true
+  shortcut_plans: true
+  use_hybrid_navigation: false  # Force pure 3D navigation (skip move_base)
+  simplify:
+    max_step: 0.5
+    min_step: 0.05
+    num_steps: 8
+    min_angle: 0.1
+  shortcut_iter: 100
+  frontier:
+    dilate_frontier_size: 2
+    dilate_obstacle_size: 4
+    default_expand_frontier_size: 12
+    min_dist: 0.1
+    step_dist: 0.2
+  goals:
+    manipulation_radius: 0.45
+
+# Robot footprint for collision detection (smaller for Segway)
+robot_footprint:
+  width: 0.25      # 25cm width (realistic for Segway base)
+  length: 0.30     # 30cm length
+  width_offset: 0.0
+  length_offset: 0.0
+
+# Home position (Room 1 - Lab starting point from vlm-tamp/location_mapping.yaml)
+home_position: [-13.0133, -15.1409, 0.0]  # [x, y, theta] in map frame
+
+# Execution parameters for 3D navigation
+trajectory_pos_err_threshold: 0.20  # More lenient for 3D planning
+trajectory_rot_err_threshold: 0.6
+trajectory_per_step_timeout: 5.0
+
+# Scene graph for spatial relationships
+guarantee_instance_is_reachable: true
+plan_with_reachable_instances: true
+plan_with_scene_graph: true
+scene_graph:
+  max_near_distance: 0.3
+  min_on_height: 0.05
+  max_on_height: 0.2
+
+# Task (empty for interactive mode)
+task:
+  command: ""

@@ -1,0 +1,22 @@
+calibration_points:
+  amcl:
+  - - -0.266331
+    - -0.252465
+  - - 1.438081
+    - -4.881605
+  - - -13.0133245
+    - -15.1408991
+  voxel:
+  - - -0.8564159482212919
+    - -10.732968254601012
+  - - 4.678349767829386
+    - -3.665243739316591
+  - - -6.3356639378938215
+    - -16.895406892569177
+config_file: rosbridge_robot_config.yaml
+map_file: /home/aoloo/code/stretch_ai/scripts/visual_grounding_benchmark/map5.pkl
+transformation:
+  num_points: 3
+  offset_x: -3.109281460571424
+  offset_y: 3.672883262162259
+  rmse: 5.784011448853389

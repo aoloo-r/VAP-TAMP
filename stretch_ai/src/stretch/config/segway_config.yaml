@@ -1,0 +1,141 @@
+# Segway Robot Configuration for Stretch AI
+# This configuration is optimized for Segway robots with ROS1 melodic + ROS2 bridge
+
+# Base configuration
+vlm_base_config: default_planner.yaml
+
+# ROS2 topic mapping for rosbridge setup
+ros2:
+  # Camera topics
+  rgb_topic: "/camera/color/image_raw"
+  depth_topic: "/camera/depth/image_rect_raw"
+  camera_info_topic: "/camera/color/camera_info"
+
+  # Robot state topics
+  joint_state_topic: "/joint_states"
+  odom_topic: "/odom"
+  odom_fallback_topic: "/odom"
+
+  # Control topics (use standard move_base topics)
+  cmd_vel_topic: "/cmd_vel"
+
+  # Navigation topics
+  goal_topic: "/move_base_simple/goal"
+  status_topic: "/move_base/status"
+
+  # LIDAR topic
+  lidar_topic: "/scan"
+
+# Segway robot physical parameters
+segway_robot:
+  width: 0.25      # 25cm width
+  length: 0.30     # 30cm length
+  height: 0.10     # 10cm base height
+  max_speed: 1.0   # 1 m/s max speed
+  max_angular_speed: 1.0  # 1 rad/s max angular speed
+  # Home position (Room 1 - Lab starting point from vlm-tamp/location_mapping.yaml)
+  home_position: [-13.0133, -15.1409, 0.0]  # [x, y, theta] in map frame
+
+# Permissive collision detection for visual servoing navigation
+collision_detection:
+  allow_partial_exploration: true
+  obstacle_padding_reduction: 0.5  # Reduce obstacle padding for navigation
+
+# Camera transform for Segway (adjust based on your setup)
+camera_transform: [
+  0.0,  0.0,  1.0,  0.3,   # Camera forward = Robot X, 30cm forward
+  -1.0, 0.0,  0.0,  0.0,   # Camera right = Robot -Y
+  0.0, -1.0,  0.0,  0.6,   # Camera down = Robot -Z, 60cm height
+  0.0,  0.0,  0.0,  1.0    # Homogeneous coordinates
+]
+
+# Core mapping parameters optimized for Segway + ROS bridge
+encoder: "dinov2siglip"
+encoder_args: { "version": "google/siglip-base-patch16-224" }
+
+# PERFORMANCE OPTIMIZATION: Smaller grid size for faster map updates
+grid_size: [512, 512]    # 512x512 instead of 1024x1024 (covers 20.48m x 20.48m at 0.04m resolution)
+
+voxel_size: 0.04
+obs_min_height: 0.05     # 5cm above ground
+obs_max_height: 2.5      # 2.5m max height
+neg_obs_height: -0.05    # 5cm below ground for floor detection
+use_negative_obstacles: true
+obs_min_density: 1       # Very lenient for real Segway robot
+min_points_per_voxel: 1  # Accept sparse point clouds from real robot
+pad_obstacles: 0         # No obstacle padding for real robot navigation
+min_pad_obstacles: 0
+local_radius: 0.8
+add_local_every_step: false
+remove_visited_from_obstacles: true  # Clear visited areas for real robot
+min_depth: 0.1
+max_depth: 5.0
+
+# VLM configuration
+vlm:
+  vlm_option: gemini
+  vlm_context_length: 150
+  save_vlm_plan: true
+  replanning: false
+  sample_strategy: "clip"
+
+# Navigation parameters optimized for Segway
+motion_planner:
+  step_size: 0.03          # Smaller steps for more precise planning
+  rotation_step_size: 0.08  # Smaller rotation steps
+  algorithm: "rrt_connect"
+  max_iter: 3000           # More iterations for complex environments
+  is_safe_threshold: -1.0  # More permissive collision detection for navigation
+  simplify_plans: true
+  shortcut_plans: true
+  use_hybrid_navigation: true   # ENABLED - Use 2D navigation stack with 3D voxel map for planning
+  simplify:
+    max_step: 0.4
+    min_step: 0.03
+    num_steps: 10
+    min_angle: 0.05
+  shortcut_iter: 150
+  frontier:
+    dilate_frontier_size: 1
+    dilate_obstacle_size: 2  # Less aggressive obstacle dilation
+    default_expand_frontier_size: 8
+    min_dist: 0.08
+    step_dist: 0.15
+  goals:
+    manipulation_radius: 1.0   # Larger radius for navigation approach
+
+# Pure 3D voxel navigation approach:
+# 1. 3D voxel map for path planning (pkl file)
+# 2. Direct velocity control to /cmd_vel (bypasses move_base)
+# 3. Camera-based localization in existing map
+# 4. Visual servoing for obstacle avoidance
+navigation:
+  use_visual_servoing: true
+
+# Robot footprint for collision detection
+robot_footprint:
+  width: 0.25      # 25cm width (realistic for Segway)
+  length: 0.30     # 30cm length
+  width_offset: 0.0
+  length_offset: 0.0
+
+# Execution parameters optimized for Segway
+trajectory_pos_err_threshold: 0.15   # 15cm position tolerance
+trajectory_rot_err_threshold: 0.4    # Tighter rotation tolerance
+trajectory_per_step_timeout: 4.0     # 4 second timeout per step
+
+# Scene graph for spatial relationships
+guarantee_instance_is_reachable: true
+plan_with_reachable_instances: true
+plan_with_scene_graph: true
+scene_graph:
+  max_near_distance: 0.25  # Smaller distances for Segway
+  min_on_height: 0.03
+  max_on_height: 0.15
+
+# Task configuration
+task:
+  command: ""  # Empty for interactive mode
+
+# Robot type specification
+robot_type: "segway"

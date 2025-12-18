@@ -1,0 +1,7 @@
+Imagine you are an intelligent agent that can answer questions based on what you see.
+You will be given a single image as the agent's current view, and one or more yes/no question(s) asking about the image.
+Questions will be separated by semicolon.
+For each question, you should answer "yes", "no", or "skip" without any explanation.
+Answer "yes" or "no" only if you are pretty sure about what you see in the image. 
+It's fine to answer "skip" to skip the question if you are not confident about your answer.
+Answers should be separated by semicolon (e.g., "yes;no;skip" for three questions).

@@ -1,0 +1,52 @@
+vlm_base_config: default_planner.yaml
+
+encoder: "dinov2siglip"
+encoder_args: { "version": "google/siglip-base-patch16-224" }
+voxel_size: 0.04
+
+pad_obstacles: 1
+
+motion_planner:
+  step_size: 0.05
+  rotation_step_size: 0.1
+  algorithm: "rrt_connect"
+  is_safe_threshold: 0.0  # Allow robot to navigate without requiring explored space (debug mode)
+  simplify_plans: True
+  shortcut_plans: True
+  simplify:
+    max_step: 0.5
+    min_step: 0.05
+    num_steps: 8
+    min_angle: 0.1
+  shortcut_iter: 100
+  frontier:
+    dilate_frontier_size: 2
+    dilate_obstacle_size: 4
+    default_expand_frontier_size: 12
+    min_dist: 0.1
+    step_dist: 0.2
+  goals:
+    manipulation_radius: 0.45
+
+# detection:
+#   module: sam2
+#   category_map_file: example_cat_map.json
+
+# TAMP parameters
+guarantee_instance_is_reachable: True
+plan_with_reachable_instances: True
+plan_with_scene_graph: True
+scene_graph:
+  max_near_distance: 0.3
+  min_on_height: 0.05
+  max_on_height: 0.2
+
+vlm:
+  vlm_option: gemini  # Changed from gpt4 to gemini for better image context handling
+  vlm_context_length: 100  # Increased to 100 - Gemini can handle much more images
+  save_vlm_plan: True
+  replanning: False
+  sample_strategy: "clip"
+
+task:
+  command: ""  # No default task - will prompt user for input

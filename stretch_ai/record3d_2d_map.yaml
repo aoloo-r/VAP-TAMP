@@ -1,0 +1,12 @@
+free_thresh: 0.196
+grid_origin:
+- 512.0
+- 512.0
+image: record3d_2d_map.pgm
+negate: 0
+occupied_thresh: 0.65
+origin:
+- -25.6
+- -25.6
+- 0.0
+resolution: 0.05

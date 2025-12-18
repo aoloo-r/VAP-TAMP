@@ -1,0 +1,194 @@
+# Fixed nvblox mapping configuration for proper coordinate alignment
+# This config fixes the frame alignment between nvblox and Stretch AI
+
+# Core mapping parameters - optimized for nvblox fusion
+voxel_size: 0.02  # Match nvblox resolution
+obs_min_height: 0.05
+obs_max_height: 2.5
+neg_obs_height: -0.05
+use_negative_obstacles: true
+obs_min_density: 3  # Lower since nvblox provides dense geometry
+min_points_per_voxel: 2  # Lower since nvblox is more reliable
+min_depth: 0.1
+max_depth: 4.0
+
+# Padding and local mapping - reduced since nvblox handles geometry well
+pad_obstacles: 1  # Reduced padding since nvblox geometry is precise
+min_pad_obstacles: 0
+local_radius: 0.3  # Smaller local radius for better precision
+add_local_every_step: false
+remove_visited_from_obstacles: false
+
+# Open vocabulary and TTS
+open_vocab_category_map_file: "example_cat_map.json"
+tts_engine: "gTTS"
+
+# Motion detection thresholds - calibrated for your setup
+motion:
+  moving_threshold: 0.001
+  angle_threshold: 0.01
+  min_steps_not_moving: 5
+  joint_tolerance:
+    head_pan: 0.1
+    head_tilt: 0.1
+    arm: 0.1
+    lift: 0.1
+    base_x: 0.1
+    wrist_roll: 0.1
+    wrist_pitch: 0.1
+    wrist_yaw: 0.1
+  joint_thresholds:
+    head_not_moving_tolerance: 0.0001
+
+# Agent behavior - optimized for nvblox integration
+agent:
+  use_realtime_updates: true
+  sweep_head_on_update: false  # Let nvblox handle the geometry
+  in_place_rotation_steps: 0
+  realtime_rotation_steps: 1  # Reduce since nvblox provides continuous updates
+  
+  # Realtime parameters
+  realtime:
+    matching_distance: 0.3  # Tighter matching since nvblox poses are accurate
+    temporal_threshold: 0.05  # Smaller temporal window
+    maximum_matched_observations: 100
+    camera_pose_match_threshold: 0.2  # Stricter pose matching
+
+# Trajectory and motion parameters
+trajectory_pos_err_threshold: 0.05  # Tighter since nvblox SLAM is accurate
+trajectory_rot_err_threshold: 0.1
+default_expansion_radius: 0.2
+
+# Disable motion planning for teleoperation
+motion_planner:
+  enabled: false
+
+# Visual encoder configuration
+encoder: "siglip"
+encoder_args: 
+  version: "so400m"
+  feature_match_threshold: 0.05
+
+# ROS2 Topic Configuration - MATCHES YOUR NVBLOX SETUP
+ros2:
+  # Camera topics - match your ultimate_camera_bridge.py output
+  rgb_topic: "/camera0/color/image_raw"
+  depth_topic: "/camera0/depth/image_rect_raw" 
+  camera_info_topic: "/camera0/color/camera_info"
+  
+  # Robot state topics - match your nvblox launch
+  joint_state_topic: "/joint_states"
+  # Use nvblox's odometry since it's doing SLAM
+  odom_topic: "/visual_slam/tracking/odometry"  
+  odom_fallback_topic: "/odom"
+  
+  # nvblox topics - exactly as in your launch file
+  nvblox_pointcloud_topic: "/nvblox_node/static_esdf_pointcloud"
+  nvblox_mesh_topic: "/nvblox_node/mesh"
+  nvblox_pessimistic_topic: "/nvblox_node/pessimistic_static_esdf_pointcloud"
+  nvblox_occupancy_topic: "/nvblox_node/static_occupancy_grid"
+  
+  # Control topics
+  cmd_vel_topic: "/cmd_vel"
+
+# Object detection configuration - lighter for real-time performance
+detection:
+  module: "detic"
+  confidence_threshold: 0.4  # Slightly higher for quality
+  category_map_file: "example_cat_map.json"
+  use_detic_viz: false
+
+# Point cloud filtering - minimal since nvblox data is clean
+filters:
+  smooth_kernel_size: 1  # Minimal smoothing
+  use_median_filter: false  # nvblox data is already clean
+  median_filter_size: 2
+  median_filter_max_error: 0.01
+  use_derivative_filter: false
+  derivative_filter_threshold: 0.1
+
+# Instance memory configuration - tuned for nvblox precision
+instance_memory:
+  enabled: true
+  max_instances: 1000
+  similarity_threshold: 0.7  # Lower threshold since poses are more accurate
+  min_instance_thickness: 0.015
+  min_instance_vol: 3e-6
+  max_instance_vol: 15.0
+  min_instance_height: 0.03
+  max_instance_height: 2.0
+  min_pixels_for_instance_view: 150
+  min_percent_for_instance_view: 0.12
+  mask_cropped_instances: false
+  
+  # Instance matching parameters - optimized for accurate poses
+  matching:
+    box_min_iou_thresh: 0.15  # Higher since poses are accurate
+    min_similarity_thresh: 0.3
+    box_overlap_weight: 0.4   # More emphasis on spatial alignment
+    visual_similarity_weight: 0.4
+    shape_similarity_weight: 0.2
+    use_shape_matching: true
+    shape_tolerance: 0.25
+  
+  # Deduplication - tighter thresholds due to accurate positioning
+  deduplication:
+    small_object_threshold: 0.001
+    medium_object_threshold: 0.01
+    large_object_threshold: 0.1
+    small_object_distance: 0.15   # Smaller distances due to accuracy
+    medium_object_distance: 0.25
+    large_object_distance: 0.35
+    min_merge_distance: 0.08
+
+# Scene graph configuration
+use_scene_graph: true
+scene_graph:
+  enabled: true
+  max_distance: 5.0
+  allowed_relationships: ["on", "near", "on_the_floor"]
+  max_near_distance: 1.2
+  max_on_height: 0.25
+  min_on_height: -0.05
+  min_on_overlap: 0.15
+  floor_height_threshold: 0.15
+
+# CRITICAL: Camera transformation - THIS NEEDS TO BE CALIBRATED FOR YOUR SETUP
+# Current transform assumes camera0_link relative to base_footprint
+# You need to get this from: ros2 run tf2_ros tf2_echo base_footprint camera0_link
+camera_transform: [
+  1.0,  0.0,  0.0,  0.0,   # Identity rotation + translation
+  0.0,  1.0,  0.0,  0.0,   # Replace these 16 values with your actual
+  0.0,  0.0,  1.0,  0.0,   # camera->base_footprint transform
+  0.0,  0.0,  0.0,  1.0    # Get via: ros2 run tf2_ros tf2_echo base_footprint camera0_link
+]
+
+# Frame configuration - MATCH YOUR NVBLOX LAUNCH
+coordinate_frames:
+  global_frame: "odom"           # Global reference frame (same as nvblox)
+  base_frame: "base_footprint"   # Robot base frame (same as nvblox)
+  camera_frame: "camera0_link"   # Camera frame (same as nvblox)
+  use_tf_transforms: true        # Use TF transforms instead of hardcoded
+
+# nvblox integration settings
+nvblox:
+  enabled: true
+  use_as_primary_geometry: true    # Use nvblox geometry as primary source
+  fusion_mode: "replace"          # Replace Stretch AI geometry with nvblox
+  update_interval: 0.1            # 10Hz nvblox updates
+  pointcloud_downsample: 1        # Use every point (nvblox is already optimized)
+  trust_nvblox_poses: true        # Use nvblox SLAM poses instead of internal odometry
+  
+# Performance tuning
+performance:
+  max_observations_per_second: 15  # Higher rate since nvblox handles geometry
+  nvblox_update_interval: 0.1      # Fast updates
+  checkpoint_interval: 30          # More frequent saves
+  
+# Debug and visualization - enable for troubleshooting
+debug:
+  show_detections: false
+  save_debug_images: false
+  log_coordinate_transforms: true   # Enable transform debugging
+  log_nvblox_integration: true     # Enable nvblox integration debugging
+  rerun_update_rate: 5.0          # 5Hz Rerun updates

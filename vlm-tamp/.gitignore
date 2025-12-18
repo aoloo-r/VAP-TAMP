@@ -1,0 +1,7 @@
+*.png
+sas_plan
+*.json
+*.pyc
+__pycache__/
+pddl_output.txt
+updated_problem.pddl

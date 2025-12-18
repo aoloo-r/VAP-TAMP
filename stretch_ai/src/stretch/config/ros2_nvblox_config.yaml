@@ -1,0 +1,183 @@
+# ROS2 nvblox mapping configuration
+# Configure this file to match your custom ROS bridge topic names
+
+# Core mapping parameters
+voxel_size: 0.02
+obs_min_height: 0.05
+obs_max_height: 2.5
+neg_obs_height: -0.05
+use_negative_obstacles: true
+obs_min_density: 5
+min_points_per_voxel: 3
+min_depth: 0.1
+max_depth: 4.0
+
+# Padding and local mapping
+pad_obstacles: 3
+min_pad_obstacles: 1
+local_radius: 0.8
+add_local_every_step: false
+remove_visited_from_obstacles: false
+
+# Open vocabulary and TTS (optional)
+open_vocab_category_map_file: "example_cat_map.json"
+tts_engine: "gTTS"
+
+# Motion detection thresholds
+motion:
+  moving_threshold: 0.001
+  angle_threshold: 0.01
+  min_steps_not_moving: 5
+  joint_tolerance:
+    head_pan: 0.1
+    head_tilt: 0.1
+    arm: 0.1
+    lift: 0.1
+    base_x: 0.1
+    wrist_roll: 0.1
+    wrist_pitch: 0.1
+    wrist_yaw: 0.1
+  joint_thresholds:
+    head_not_moving_tolerance: 0.0001
+
+# Agent behavior
+agent:
+  use_realtime_updates: true
+  sweep_head_on_update: false
+  in_place_rotation_steps: 0
+  realtime_rotation_steps: 2
+  
+  # Realtime parameters
+  realtime:
+    matching_distance: 0.5
+    temporal_threshold: 0.1
+    maximum_matched_observations: 50
+    camera_pose_match_threshold: 0.5
+
+# Trajectory and motion parameters
+trajectory_pos_err_threshold: 0.1
+trajectory_rot_err_threshold: 0.2
+default_expansion_radius: 0.3
+
+# Disable motion planning for teleoperation
+motion_planner:
+  enabled: false
+
+# Visual encoder configuration
+encoder: "siglip"
+encoder_args: {}
+
+# ROS2 Topic Configuration
+# CONFIGURED FOR YOUR ROBOT SETUP
+ros2:
+  # Camera topics (using standard camera topics)
+  rgb_topic: "/camera/color/image_raw"
+  depth_topic: "/camera/depth/image_rect_raw"
+  camera_info_topic: "/camera/color/camera_info"
+  
+  # Robot state topics
+  joint_state_topic: "/joint_states"
+  odom_topic: "/visual_slam/tracking/odometry"  # Use visual SLAM for accurate poses
+  odom_fallback_topic: "/odom"  # Fallback to wheel odometry
+  
+  # nvblox topics (confirmed available from your topic list)
+  nvblox_pointcloud_topic: "/nvblox_node/static_esdf_pointcloud"  # Real nvblox 3D reconstruction
+  nvblox_mesh_topic: "/nvblox_node/mesh"
+  
+  # Alternative nvblox topics (if needed)
+  nvblox_pessimistic_topic: "/nvblox_node/pessimistic_static_esdf_pointcloud"
+  nvblox_occupancy_topic: "/nvblox_node/static_occupancy_grid"
+  
+  # Control topics
+  cmd_vel_topic: "/cmd_vel"
+  
+  # Alternative camera topics (if main ones don't work)
+  # rgb_topic_alt: "/camera0/color/image_raw"
+  # depth_topic_alt: "/camera0/realsense_splitter_node/output/depth"
+  # camera_info_alt: "/camera0/color/camera_info"
+
+# Object detection configuration
+detection:
+  module: "detic"
+  confidence_threshold: 0.5
+  category_map_file: "example_cat_map.json"
+  use_detic_viz: false
+
+# Point cloud filtering
+filters:
+  smooth_kernel_size: 3
+  use_median_filter: true
+  median_filter_size: 4
+  median_filter_max_error: 0.01
+  use_derivative_filter: false
+  derivative_filter_threshold: 0.1
+
+# Instance memory configuration
+instance_memory:
+  enabled: true
+  max_instances: 1000
+  similarity_threshold: 0.8
+  min_instance_thickness: 0.02
+  min_instance_vol: 5e-6
+  max_instance_vol: 10.0
+  min_instance_height: 0.05
+  max_instance_height: 1.8
+  min_pixels_for_instance_view: 200
+  min_percent_for_instance_view: 0.15
+  mask_cropped_instances: false
+  
+  # Instance matching parameters
+  matching:
+    box_min_iou_thresh: 0.02
+    min_similarity_thresh: 0.25
+    box_overlap_weight: 0.2
+    visual_similarity_weight: 0.5
+    shape_similarity_weight: 0.3
+    use_shape_matching: true
+    shape_tolerance: 0.3
+  
+  # Adaptive deduplication
+  deduplication:
+    small_object_threshold: 0.001
+    medium_object_threshold: 0.01
+    large_object_threshold: 0.1
+    small_object_distance: 0.20
+    medium_object_distance: 0.30
+    large_object_distance: 0.45
+    min_merge_distance: 0.10
+  
+# Scene graph configuration
+use_scene_graph: true
+scene_graph:
+  enabled: true
+  max_distance: 5.0
+  # RESTRICTED RELATIONSHIPS: only include these 3 types
+  allowed_relationships: ["on", "near", "on_the_floor"]
+  # Required parameters for relationship calculations
+  max_near_distance: 1.5      # Maximum distance for "near" relationship (meters)
+  max_on_height: 0.3          # Maximum height difference for "on" relationship (meters)
+  min_on_height: -0.1         # Minimum height difference for "on" relationship (meters)
+  min_on_overlap: 0.1         # Minimum overlap for "on" relationship
+  floor_height_threshold: 0.2 # Height threshold to consider something "on floor" (meters)
+  
+# Debug and visualization
+debug:
+  show_detections: false
+  save_debug_images: false
+  
+# Camera calibration
+# Camera-to-base transform (4x4 matrix flattened to 16 elements)  
+# This represents the fixed transform from robot base to camera
+# SIDE-MOUNTED CAMERA CONFIGURATION - 1.2m from base
+camera_transform: [
+  0.0, -1.0, 0.0, 0.0,   # X axis (camera faces left from robot perspective)
+  1.0,  0.0, 0.0, 1.2,   # Y axis (camera is 1.2m to the left of robot base)  
+  0.0,  0.0, 1.0, 0.0,   # Z axis (same height as robot base)
+  0.0,  0.0, 0.0, 1.0    # Homogeneous coordinates
+]
+
+# Performance tuning
+performance:
+  max_observations_per_second: 10
+  nvblox_update_interval: 1.0  # seconds
+  checkpoint_interval: 60  # seconds

@@ -1,0 +1,24 @@
+landmarks_3d_map:
+- !!python/tuple
+  - -8.600000000000001
+  - -9.5
+- !!python/tuple
+  - -10.05
+  - -11.700000000000001
+landmarks_odom:
+- !!python/tuple
+  - -5.9494
+  - -13.929
+- !!python/tuple
+  - -5.1715
+  - -17.2301
+max_error_meters: 14.812085964155857
+mean_error_meters: 14.662335908894951
+offset_x: 3.7645500000000016
+offset_y: -4.97955
+rotation_deg: 159.8712563845661
+rotation_matrix:
+- - -0.9389217299201129
+  - 0.34413076741817594
+- - 0.34413076741817594
+  - 0.9389217299201129
