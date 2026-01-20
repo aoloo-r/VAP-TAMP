@@ -114,7 +114,7 @@ class ActivePerceptionModule:
         self.voxel_map = None
         if map_file:
             self._load_map(map_file)
-            print(f"   ℹ️  Robot localization handled by AMCL - no initial pose needed")
+            print(f" Robot localization handled by AMCL - no initial pose needed")
 
         # Exploration parameters
         self.max_exploration_attempts = max_exploration_attempts
@@ -136,7 +136,7 @@ class ActivePerceptionModule:
             print(f"   Loaded calibration: ({offset_x:.3f}, {offset_y:.3f})")
             return offset_x, offset_y
         else:
-            print(f"   ⚠️  No calibration file, using (0.0, 0.0)")
+            print(f"  No calibration file, using (0.0, 0.0)")
             return 0.0, 0.0
 
     def _load_map(self, map_file: str):
@@ -154,7 +154,7 @@ class ActivePerceptionModule:
             perception=self.semantic_sensor
         )
 
-        print(f"   ✅ Loaded map with {len(self.voxel_map.instances)} instances")
+        print(f"   Loaded map with {len(self.voxel_map.instances)} instances")
 
     def get_current_observation(self) -> np.ndarray:
         """Get current RGB image from robot camera."""
@@ -198,19 +198,19 @@ class ActivePerceptionModule:
         target_object = self._extract_target_object(predicate)
 
         if not target_object:
-            print(f"   ❌ Could not extract target object from predicate")
+            print(f"    Could not extract target object from predicate")
             return "uncertain", self.get_current_observation(), False
 
         print(f"   Target object: {target_object}")
 
         # STEP 1: Try head camera adjustments first (faster)
-        print(f"\n   📹 STEP 1: Trying head camera adjustments...")
+        print(f"\n    STEP 1: Trying head camera adjustments...")
         confident_response = self._try_head_camera_exploration(vlm_agent, question)
         if confident_response:
             return confident_response, self.get_current_observation(), True
 
         # STEP 2: Try base repositioning if head adjustments didn't work
-        print(f"\n   🚶 STEP 2: Head adjustments unsuccessful, trying base repositioning...")
+        print(f"\n    STEP 2: Head adjustments unsuccessful, trying base repositioning...")
 
         # Store original position
         self.original_position = self.robot.get_base_pose()
@@ -220,7 +220,7 @@ class ActivePerceptionModule:
         viewpoints = self._sample_viewpoints_around_object(target_object)
 
         if not viewpoints:
-            print(f"   ❌ No viewpoints could be generated")
+            print(f"    No viewpoints could be generated")
             return "uncertain", self.get_current_observation(), False
 
         print(f"   Generated {len(viewpoints)} viewpoints")
@@ -234,7 +234,7 @@ class ActivePerceptionModule:
             success = self.robot.navigate_to_goal(vp_x, vp_y, vp_theta)
 
             if not success:
-                print(f"      ❌ Navigation failed")
+                print(f"       Navigation failed")
                 continue
 
             # Wait for robot to stabilize
@@ -244,7 +244,7 @@ class ActivePerceptionModule:
             rgb_image = self.get_current_observation()
 
             # Query VLM again with new view
-            print(f"      🧠 Querying VLM with new view...")
+            print(f"       Querying VLM with new view...")
             vlm_response = vlm_agent.ask(question, rgb_image)
 
             print(f"      VLM response: {vlm_response}")
@@ -255,7 +255,7 @@ class ActivePerceptionModule:
 
             # Check if VLM is now confident
             if self._is_confident_response(vlm_response):
-                print(f"      ✅ Got confident answer: {vlm_response}")
+                print(f"       Got confident answer: {vlm_response}")
 
                 # Return to original position
                 self._return_to_original_position()
@@ -263,7 +263,7 @@ class ActivePerceptionModule:
                 return vlm_response, rgb_image, True
 
         # Failed to get confident answer
-        print(f"   ❌ Exploration failed - no confident answer after {self.max_exploration_attempts} attempts")
+        print(f"    Exploration failed - no confident answer after {self.max_exploration_attempts} attempts")
 
         # Return to original position
         self._return_to_original_position()
@@ -289,7 +289,7 @@ class ActivePerceptionModule:
         """
         # Check if robot has head control capability
         if not hasattr(self.robot, 'head_to'):
-            print(f"      ⚠️  Robot does not have head control, skipping")
+            print(f"        Robot does not have head control, skipping")
             return None
 
         # Store original head position
@@ -334,7 +334,7 @@ class ActivePerceptionModule:
 
                 # Check if confident
                 if self._is_confident_response(vlm_response):
-                    print(f"      ✅ Got confident answer with head adjustment!")
+                    print(f"       Got confident answer with head adjustment!")
 
                     # Return head to original position
                     self.robot.head_to(original_head_pan, original_head_tilt, blocking=True)
@@ -343,7 +343,7 @@ class ActivePerceptionModule:
                     return vlm_response
 
             except Exception as e:
-                print(f"         ⚠️  Head movement failed: {e}")
+                print(f"           Head movement failed: {e}")
                 continue
 
         # Return head to original position
@@ -404,7 +404,7 @@ class ActivePerceptionModule:
             List of (x, y, theta) viewpoints in robot frame
         """
         if self.voxel_map is None:
-            print(f"      ⚠️  No voxel map available")
+            print(f"        No voxel map available")
             return []
 
         # Find object in map
@@ -422,7 +422,7 @@ class ActivePerceptionModule:
                     pass
 
         if target_instance is None:
-            print(f"      ⚠️  Object '{object_name}' not found in map")
+            print(f"        Object '{object_name}' not found in map")
             return []
 
         # Get object center
@@ -482,13 +482,13 @@ class ActivePerceptionModule:
         if self.original_position is None:
             return
 
-        print(f"   🔙 Returning to original position...")
+        print(f"    Returning to original position...")
 
         orig_x, orig_y, orig_theta = self.original_position
         self.robot.navigate_to_goal(orig_x, orig_y, orig_theta)
 
         time.sleep(1.5)
-        print(f"   ✅ Returned to original position")
+        print(f"    Returned to original position")
 
     def verify_object_visible(self, object_name: str, instance) -> Tuple[bool, bool]:
         """
@@ -506,7 +506,7 @@ class ActivePerceptionModule:
         # Get current observation
         obs = self.robot.get_observation()
         if obs is None or obs.rgb is None:
-            print(f"   ⚠️  No observation available")
+            print(f"     No observation available")
             return False, True
 
         # Simple heuristic: For now, assume we need to navigate closer to verify
@@ -529,10 +529,10 @@ class ActivePerceptionModule:
 
             # If within 2m, assume visible
             if distance < 2.0:
-                print(f"   ✅ Object is close enough - assumed visible")
+                print(f"    Object is close enough - assumed visible")
                 return True, False
             else:
-                print(f"   ⚠️  Object is far - may need closer view")
+                print(f"     Object is far - may need closer view")
                 return False, True
 
         return False, True
@@ -554,7 +554,7 @@ class ActivePerceptionModule:
         viewpoints = self._sample_viewpoints_around_object(object_name)
 
         if not viewpoints:
-            print(f"   ❌ No valid viewpoints found")
+            print(f"    No valid viewpoints found")
             return False
 
         # Save original position
@@ -573,10 +573,10 @@ class ActivePerceptionModule:
                 is_visible, _ = self.verify_object_visible(object_name, instance)
 
                 if is_visible:
-                    print(f"   ✅ Object visible from viewpoint {i+1}")
+                    print(f"    Object visible from viewpoint {i+1}")
                     return True
 
-        print(f"   ❌ Object not visible from any viewpoint")
+        print(f"    Object not visible from any viewpoint")
 
         # Return to original position
         self._return_to_original_position()
