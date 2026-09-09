@@ -124,6 +124,7 @@ Check out additional documentation for ways to use Stretch AI:
 - [Learning from Demonstration](docs/learning_from_demonstration.md)  -- How to train and evaluate policies with LfD
 - [Open-Vocabulary Mobile Manipulation](docs/ovmm.md) -- Experimental code which can handle more complex language commands
 - [Apps](docs/apps.md) -- List of many different apps that you can run
+- [VLM Planning](docs/apps.md#vlm-planning) -- Plan tasks with a vision-language model over a saved map, offline or on the robot
 - [Simple API](docs/simple_api.md) -- How to use the simple API to control the robot over wireless
 
 ## Development

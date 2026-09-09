@@ -230,11 +230,44 @@ python -m stretch.app.read_map -i hq_small.pkl --test-remove --show-instances --
 
 ### VLM Planning
 
-This is an experimental app that uses the voxel map to plan a path to a goal. It is not yet fully functional.
+This is an experimental app that uses a vision-language model (VLM) to plan a sequence of actions over a semantic voxel map. It can run entirely offline from a saved map, or against a live robot.
+
+The app picks its robot client from the arguments you pass:
+
+| Arguments | Robot client | Use case |
+| --- | --- | --- |
+| `-i <map.pkl>` only | Dummy client, no network | Plan and visualize over a prebuilt map. No robot IP is needed or looked up. |
+| `-i <map.pkl> --robot_ip <ip>` | ZMQ client, falls back to dummy on failure | Plan over a prebuilt map and execute the resulting navigation goals on the robot. |
+| no `-i` | ZMQ client, required | Scan the surroundings with the live robot to build the map first. Uses `--robot_ip` or `~/.stretch/robot_ip.txt`. |
+
+Offline planning from a map saved with `stretch.app.mapping` or `stretch.app.read_map`:
 
 ```bash
-python -m stretch.app.vlm_planning
+python -m stretch.app.vlm_planning -i room1.pkl --show-instances --show-svm -f 20 -fs 3
 ```
+
+Planning from a saved map and executing on a robot:
+
+```bash
+python -m stretch.app.vlm_planning -i room1.pkl --robot_ip 192.168.1.15 --task "pick up the basket"
+```
+
+Options include:
+
+- `--input-path`, `-i` - Path to a saved `.pkl` map. If empty, a live robot is required.
+- `--robot_ip` - IP address of the robot. With a map file this is optional and enables execution; without a map file it is required.
+- `--task`, `-t` - Natural language task for the planner. If omitted, the value from the config file is used, or the app drops into interactive mode.
+- `--config-path`, `-c` - Planner config. Defaults to `app/vlm_planning/multi_crop_vlm_planner.yaml`; `app/vlm_planning/gpt4v_planner.yaml` is also available.
+- `--frame`, `-f` - Number of frames to read from the map file. `-1` reads all of them.
+- `--frame_skip`, `-fs` - Read every Nth frame.
+- `--show-svm`, `-s` - Show the sparse voxel map in an Open3D window.
+- `--show-instances` - Show the detected object instances.
+- `--api-key` - API key for the VLM backend. If omitted you will be prompted for it.
+- `--offset_x`, `--offset_y`, `--calibration-file` - Map-to-robot frame offset used when executing on a robot. Read from `simple_offset_calibration.yaml` by default.
+- `--use-simple-nav` - Send goals with the simple offset-based navigation used by `segway_hybrid_navigation`.
+- `--local` - Run on the robot itself rather than a remote workstation.
+
+The perception model is loaded before planning, so the first run downloads Detic and CLIP checkpoints and takes a few minutes.
 
 ### Open-Vocabulary Mobile Manipulation
 
