@@ -10,10 +10,6 @@ This directory holds the task-planning layer of **VAP-TAMP**, a Vision-language 
 - **Hybrid Mapping**: Combines 2D AMCL navigation with 3D semantic voxel maps
 - **PDDL Planning**: Classical planning with VLM-guided grounding
 
-## Architecture
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system design, coordinate frames, and data flow.
-
 ## Installation
 
 ### Prerequisites
@@ -98,16 +94,13 @@ python eval_real_robot.py \
 ├── eval.py             # Simulation evaluation
 ├── eval_real_robot.py  # Real robot evaluation
 ├── downward/           # Fast Downward planner (submodule)
-├── VAL/                # Plan validator (submodule)
-└── ARCHITECTURE.md     # System architecture documentation
+└── VAL/                # Plan validator (submodule)
 ```
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and design
-- [TASK_SPECIFICATIONS.md](TASK_SPECIFICATIONS.md) - Task definitions and specifications
-- [EXPERIMENTS.md](EXPERIMENTS.md) - Experimental setup and results
-- [LOCATION_MAPPING.md](LOCATION_MAPPING.md) - Semantic location mapping
+- [Top-level README](../README.md) - The whole system and the real-robot quick start
+- [App reference](../stretch_ai/docs/apps.md) - Mapping, `read_map`, and VLM planning apps in the perception layer
 
 ## Supported Tasks
 

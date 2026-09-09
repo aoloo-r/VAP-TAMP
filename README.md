@@ -69,7 +69,7 @@ No robot IP is needed in this mode. Add `--robot_ip <ROBOT_IP>` to execute the p
 python3 generate_scene_graph.py -i <path/to/map.pkl> -o scene_graph.json
 ```
 
-**Annotate room and location labels** for navigation, which the voxel map does not carry on its own. See the [location mapping guide](vlm-tamp/LOCATION_MAPPING.md).
+**Annotate room and location labels** for navigation, which the voxel map does not carry on its own, with [`vlm-tamp/annotate_room_boundaries.py`](vlm-tamp/annotate_room_boundaries.py). The result is read by `eval_real_robot.py` through `--location-map`.
 
 ---
 
@@ -78,10 +78,7 @@ python3 generate_scene_graph.py -i <path/to/map.pkl> -o scene_graph.json
 | Document | Covers |
 | --- | --- |
 | [Planning layer setup](vlm-tamp/README.md) | Installing dependencies, building Fast Downward and VAL, simulation mode |
-| [Architecture](vlm-tamp/ARCHITECTURE.md) | System design, coordinate frames, data flow between layers |
-| [Experiments](vlm-tamp/EXPERIMENTS.md) | Running the three experimental tasks on the robot |
-| [Task specifications](vlm-tamp/TASK_SPECIFICATIONS.md) | Task definitions and their PDDL encodings |
-| [Location mapping](vlm-tamp/LOCATION_MAPPING.md) | Annotating semantic locations on a map |
+| [PDDL domains](vlm-tamp/domains/) | Domain and problem files for each task |
 | [Perception and navigation setup](stretch_ai/README.md) | Hardware requirements, workstation install, Docker |
 | [App reference](stretch_ai/docs/apps.md) | Every command-line app, including mapping, `read_map`, and [VLM planning](stretch_ai/docs/apps.md#vlm-planning) |
 
