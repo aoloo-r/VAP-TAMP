@@ -1,10 +1,10 @@
-# DKPrompt: VLM-TAMP for Real-World Robotics
+# VAP-TAMP: Planning Layer
 
-An integrated system for Vision-Language Model based Task and Motion Planning (VLM-TAMP) with real robot execution capabilities. This project combines VLM-TAMP planning with Stretch AI framework and supports both simulation (OmniGibson) and real robot deployment (Segway + UR5e).
+This directory holds the task-planning layer of **VAP-TAMP**, a Vision-language Active Perception system for Task and Motion Planning. It grounds PDDL predicates with a vision-language model, plans with Fast Downward, validates with VAL, and drives the perception and navigation layer in [`../stretch_ai/`](../stretch_ai/) to execute on a real robot (Segway + UR5e) or in the OmniGibson simulator. See the [top-level README](../README.md) for the whole system.
 
 ## Features
 
-- **DKPrompt VLM-TAMP**: Enhanced VLM-TAMP framework with active perception
+- **VLM-grounded task planning**: PDDL planning with vision-language grounding of the symbolic state
 - **Real Robot Support**: Integration with Segway mobile base and UR5e arm
 - **Active Perception**: Autonomous viewpoint exploration when VLM is uncertain
 - **Hybrid Mapping**: Combines 2D AMCL navigation with 3D semantic voxel maps
@@ -23,8 +23,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system design, coordinate fr
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/aoloo-r/DKPrompt.git
-cd DKPrompt
+git clone https://github.com/aoloo-r/VAP-TAMP.git
+cd VAP-TAMP/vlm-tamp
 git submodule update --init --recursive
 ```
 
@@ -73,7 +73,7 @@ python eval_with_active_perception.py
 #### 1. Start Robot Bridge
 On the robot computer:
 ```bash
-cd stretch_ai
+cd ../stretch_ai
 ./scripts/run_segway_bridge.sh
 ```
 
@@ -92,8 +92,8 @@ python eval_real_robot.py \
 ```
 .
 ├── domains/              # PDDL domain and problem files
-├── src/                  # Core VLM-TAMP implementation
-├── stretch_ai/          # Robot control and perception
+├── src/                  # Core planning implementation
+├── ../stretch_ai/       # Perception and navigation layer (sibling directory)
 ├── active_perception.py # Active perception module
 ├── eval.py             # Simulation evaluation
 ├── eval_real_robot.py  # Real robot evaluation
@@ -128,18 +128,18 @@ python eval_real_robot.py \
 
 If you use this work, please cite:
 ```bibtex
-@article{dkprompt2024,
-  title={DKPrompt: VLM-TAMP for Real-World Robotics},
+@article{vaptamp2026,
+  title={VAP-TAMP: Vision-language Active Perception for Task and Motion Planning},
   author={Your Name and Collaborators},
-  year={2024}
+  year={2026}
 }
 ```
 
 ## Acknowledgments
 
-This project builds upon:
-- VLM-TAMP framework
-- Stretch AI by Hello Robot
+VAP-TAMP builds upon:
+- The VLM-TAMP and DKPrompt line of work on vision-language task and motion planning
+- Stretch AI by Hello Robot, from which the perception and navigation layer is derived
 - OmniGibson simulator
 - Fast Downward planner
 - VAL plan validator
