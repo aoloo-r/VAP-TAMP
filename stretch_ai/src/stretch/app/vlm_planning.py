@@ -200,8 +200,10 @@ def main(
     use_simple_nav: bool = False,
 ):
     """Simple script to load a voxel map"""
-    input_path = Path(input_path)
-    print("Loading:", input_path)
+    # NOTE: Path("") == Path(".") which is truthy, so decide "do we have a map file" on the raw string.
+    use_pickle_map = len(str(input_path)) > 0
+    input_path = Path(input_path) if use_pickle_map else None
+    print("Loading:", input_path if use_pickle_map else "(no map file, live robot)")
 
     # Load offset from calibration file if not provided via command line
     if offset_x is None or offset_y is None:
@@ -254,59 +256,63 @@ def main(
     print("Creating semantic sensors...")
     semantic_sensor = create_semantic_sensor(parameters=vlm_parameters)
 
-    # Always try to connect to real robot first, use dummy only as fallback
-    try:
-        # Try ZMQ client first (for Segway and other robots)
-        from stretch.agent.zmq_client import HomeRobotZmqClient
-        import time
-        
-        # ZMQ client doesn't need rosbridge validation
-        print("🔍 Connecting to robot via ZMQ...")
-        
-        # Disable Rerun completely to avoid freezing issues
-        # Use Open3D for visualization instead
-        robot = HomeRobotZmqClient(
-            robot_ip=robot_ip,
-            parameters=vlm_parameters,
-            use_remote_computer=(not local),
-            enable_rerun_server=False  # Disabled to prevent freezing
-        )
-
-        # For pickle files, we still need to validate robot is available for execution
-        if input_path:
-            print("ℹ️  Robot client rerun disabled (pkl file provides map, not live robot stream)")
-            print("📁 Loading from pickle file - robot available for navigation commands")
-            print("🔗 Connected via ZMQ client")
-        else:
-            # Wait for actual robot data to validate connection
-            print("⏳ Validating robot connection (waiting for sensor data)...")
-            timeout = 10.0  # 10 second timeout for validation
-            start_time = time.time()
-            
-            # First check if robot is running
-            while not robot.is_running():
-                if time.time() - start_time > timeout:
-                    raise Exception("Timeout: Robot client failed to start")
-                time.sleep(0.5)
-                print(".", end="", flush=True)
-            
-            # Then check for real sensor data (not just proxy topics)
-            print("\n⏳ Checking for real robot sensor data (not proxy topics)...")
-            data_timeout = 15.0  # 15 second timeout for real data
-            data_start_time = time.time()
-            
-            while not robot.has_real_robot_data(max_age_seconds=3.0):
-                if time.time() - data_start_time > data_timeout:
-                    raise Exception("Timeout: No real robot sensor data received (robot may be offline or rosbridge not bridging data)")
-                time.sleep(0.5)
-                print(".", end="", flush=True)
-            
-            print("\n🔗 Connected to real robot with active sensor data (ZMQ client)")
-            print("🌉 Successfully connected via ZMQ bridge")
-    except Exception as zmq_error:
-        print(f"⚠️  Could not connect to robot via ZMQ: {zmq_error}")
-        print("🤖 Using dummy robot client for simulation mode")
+    # Client selection:
+    #   - pickle map + no --robot_ip  -> offline mode, dummy client, no ZMQ attempt
+    #   - pickle map + --robot_ip     -> load map from pickle, connect to robot for execution
+    #   - no pickle map               -> live robot required (uses --robot_ip or ~/.stretch/robot_ip.txt)
+    robot = None
+    if use_pickle_map and not robot_ip:
+        print("📁 Loading map from pickle, no --robot_ip given: running offline with dummy robot client")
         robot = DummyStretchClient()
+    else:
+        try:
+            import time
+
+            print("🔍 Connecting to robot via ZMQ...")
+            # Rerun disabled to avoid freezing; Open3D is used for visualization instead
+            robot = HomeRobotZmqClient(
+                robot_ip=robot_ip,
+                parameters=vlm_parameters,
+                use_remote_computer=(not local),
+                enable_rerun_server=False,
+            )
+
+            if use_pickle_map:
+                print("📁 Map loaded from pickle; robot client available for navigation commands")
+                print("🔗 Connected via ZMQ client")
+            else:
+                # Wait for actual robot data to validate connection
+                print("⏳ Validating robot connection (waiting for sensor data)...")
+                timeout = 10.0
+                start_time = time.time()
+                while not robot.is_running():
+                    if time.time() - start_time > timeout:
+                        raise Exception("Timeout: Robot client failed to start")
+                    time.sleep(0.5)
+                    print(".", end="", flush=True)
+
+                print("\n⏳ Checking for real robot sensor data (not proxy topics)...")
+                data_timeout = 15.0
+                data_start_time = time.time()
+                while not robot.has_real_robot_data(max_age_seconds=3.0):
+                    if time.time() - data_start_time > data_timeout:
+                        raise Exception(
+                            "Timeout: No real robot sensor data received (robot may be offline or rosbridge not bridging data)"
+                        )
+                    time.sleep(0.5)
+                    print(".", end="", flush=True)
+
+                print("\n🔗 Connected to real robot with active sensor data (ZMQ client)")
+        except (Exception, SystemExit) as zmq_error:
+            # zmq_client calls sys.exit(1) when no IP can be resolved; SystemExit is not an
+            # Exception subclass, so it must be caught explicitly for the fallback to work.
+            if not use_pickle_map:
+                print(f"❌ Could not connect to robot via ZMQ: {zmq_error}")
+                print("   No pickle map was given, so a live robot is required. Pass --robot_ip or -i <map.pkl>.")
+                raise
+            print(f"⚠️  Could not connect to robot via ZMQ: {zmq_error}")
+            print("🤖 Using dummy robot client for offline mode")
+            robot = DummyStretchClient()
 
     print("Creating robot agent...")
     agent = RobotAgent(
@@ -317,7 +323,7 @@ def main(
     )
     voxel_map = agent.get_voxel_map()
 
-    if input_path:
+    if use_pickle_map:
         # load from pickle
         voxel_map.read_from_pickle(input_path, num_frames=frame, perception=semantic_sensor)
     else:

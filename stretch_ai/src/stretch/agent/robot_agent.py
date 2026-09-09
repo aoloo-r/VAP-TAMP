@@ -191,7 +191,7 @@ class RobotAgent:
         # Create planning space
         # Use custom robot model if specified for different robot types
         robot_model = self.robot.get_robot_model()
-        if self.parameters.get("robot_footprint"):
+        if "robot_footprint" in self.parameters.data:
             # Override robot model with custom footprint - use None to trigger default in SparseVoxelMapNavigationSpace
             robot_model = None
 
@@ -205,7 +205,7 @@ class RobotAgent:
         }
 
         # Add custom footprint parameters if specified
-        if self.parameters.get("robot_footprint"):
+        if "robot_footprint" in self.parameters.data:
             nav_kwargs["custom_footprint"] = self.parameters["robot_footprint"]
 
         self.space = SparseVoxelMapNavigationSpace(
